@@ -443,6 +443,38 @@ count_remaining_compatible_planes(struct liftoff_output *output,
 }
 
 static int
+calculate_best_possible_score(struct liftoff_output *output, struct alloc_result *result,
+			      struct alloc_step *step)
+{
+	struct liftoff_layer *layer;
+	int remaining_planes, remaining_layers, remaining_allocs;
+
+	remaining_planes = count_remaining_compatible_planes(output, step);
+
+	/* Count number of remaining scoring layers */
+	remaining_layers = 0;
+	liftoff_list_for_each(layer, &output->layers, link) {
+		/* Allocated layers are already included in current score */
+		if (is_layer_allocated(step, layer)) {
+			continue;
+		}
+		/* Invisible layers won't be allocated */
+		if (!layer_is_visible(layer)) {
+			continue;
+		}
+		/* Composition layer isn't included in the score */
+		if (layer == output->composition_layer) {
+			continue;
+		}
+		remaining_layers++;
+	}
+
+	remaining_allocs = remaining_layers < remaining_planes
+		? remaining_layers : remaining_planes;
+	return step->score + remaining_allocs;
+}
+
+static int
 output_choose_layers(struct liftoff_output *output, struct alloc_result *result,
 		     struct alloc_step *step)
 {
@@ -450,7 +482,7 @@ output_choose_layers(struct liftoff_output *output, struct alloc_result *result,
 	struct liftoff_plane *plane;
 	struct liftoff_layer *layer;
 	int cursor, ret;
-	int remaining_planes;
+	int best_possible_score;
 	struct alloc_step next_step = {0};
 
 	device = output->device;
@@ -471,8 +503,8 @@ output_choose_layers(struct liftoff_output *output, struct alloc_result *result,
 
 	plane = liftoff_container_of(step->plane_link, plane, link);
 
-	remaining_planes = count_remaining_compatible_planes(output, step);
-	if (result->best_score >= step->score + remaining_planes) {
+	best_possible_score = calculate_best_possible_score(output, result, step);
+	if (result->best_score >= best_possible_score) {
 		/* Even if we find a layer for all remaining planes, we won't
 		 * find a better allocation. Give up. */
 		return 0;
