@@ -504,11 +504,6 @@ output_choose_layers(struct liftoff_output *output, struct alloc_result *result,
 	plane = liftoff_container_of(step->plane_link, plane, link);
 
 	best_possible_score = calculate_best_possible_score(output, result, step);
-	if (result->best_score >= best_possible_score) {
-		/* Even if we find a layer for all remaining planes, we won't
-		 * find a better allocation. Give up. */
-		return 0;
-	}
 
 	cursor = drmModeAtomicGetCursor(result->req);
 
@@ -535,6 +530,15 @@ output_choose_layers(struct liftoff_output *output, struct alloc_result *result,
 			liftoff_log(LIFTOFF_DEBUG, "%s Deadline exceeded",
 				    step->log_prefix);
 			break;
+		}
+
+		if (result->best_score >= best_possible_score) {
+			/* Even if we find a layer for all remaining planes, we won't
+			 * find a better allocation. Give up. */
+			liftoff_log(LIFTOFF_DEBUG,
+				    "%sEarly-exit because %d is the best possible score",
+				    step->log_prefix, result->best_score);
+			return 0;
 		}
 
 		/* Try to use this layer for the current plane */
