@@ -37,7 +37,7 @@ int
 main(int argc, char *argv[])
 {
 	int opt;
-	size_t planes_len, layers_len;
+	size_t planes_len, layers_len, bench_count, commit_count;
 	struct timespec start, end;
 	struct liftoff_mock_plane *mock_planes[MAX_PLANES];
 	size_t i, j;
@@ -52,7 +52,8 @@ main(int argc, char *argv[])
 
 	planes_len = 5;
 	layers_len = 10;
-	while ((opt = getopt(argc, argv, "p:l:")) != -1) {
+	bench_count = 1;
+	while ((opt = getopt(argc, argv, "p:l:n:")) != -1) {
 		switch (opt) {
 		case 'p':
 			planes_len = (size_t)atoi(optarg);
@@ -60,8 +61,11 @@ main(int argc, char *argv[])
 		case 'l':
 			layers_len = (size_t)atoi(optarg);
 			break;
+		case 'n':
+			bench_count = (size_t)atoi(optarg);
+			break;
 		default:
-			fprintf(stderr, "usage: %s [-p planes] [-l layers]\n",
+			fprintf(stderr, "usage: %s [-p planes] [-l layers] [-n count]\n",
 				argv[0]);
 			exit(EXIT_FAILURE);
 		}
@@ -105,23 +109,42 @@ main(int argc, char *argv[])
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
 	req = drmModeAtomicAlloc();
-	ret = liftoff_output_apply(output, req, 0, &(struct liftoff_output_apply_options){
-		.timeout_ns = INT64_MAX,
-	});
-	assert(ret == 0);
+	for (i = 0; i < bench_count; i++) {
+		drmModeAtomicSetCursor(req, 0);
+		ret = liftoff_output_apply(output, req, 0, &(struct liftoff_output_apply_options){
+			.timeout_ns = INT64_MAX,
+		});
+		assert(ret == 0);
+
+		for (j = 0; j < layers_len; j++) {
+#if 0 /* change position without changing intersection */
+			liftoff_layer_set_property(layers[j], "CRTC_X",
+						   j * 100 + i);
+			liftoff_layer_set_property(layers[j], "CRTC_Y",
+						   j * 100 + i);
+#else /* change size and intersection */
+			liftoff_layer_set_property(layers[j], "CRTC_W",
+						   100 + 50 * (i % 2));
+			liftoff_layer_set_property(layers[j], "CRTC_H",
+						   100 + 50 * (i % 2));
+#endif
+		}
+	}
 	drmModeAtomicFree(req);
 
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	dur_ms = ((double)end.tv_sec - (double)start.tv_sec) * 1000 +
 		 ((double)end.tv_nsec - (double)start.tv_nsec) / 1000000;
+	dur_ms = dur_ms / (double)bench_count;
+	commit_count = liftoff_mock_commit_count / bench_count;
 	printf("Plane allocation took %fms\n", dur_ms);
 	printf("Plane allocation performed %zu atomic test commits\n",
-	       liftoff_mock_commit_count);
+	       commit_count);
 	/* TODO: the mock libdrm library takes time to check atomic requests.
 	 * This benchmark doesn't account for time spent in the mock library. */
 	printf("With 20µs per atomic test commit, plane allocation would take "
-	       "%fms\n", dur_ms + liftoff_mock_commit_count * 0.02);
+	       "%fms\n", dur_ms + commit_count * 0.02);
 
 	liftoff_device_destroy(device);
 	close(drm_fd);
