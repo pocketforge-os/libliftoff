@@ -420,7 +420,7 @@ check_alloc_valid(struct liftoff_output *output, struct alloc_result *result,
 static bool
 check_plane_output_compatible(struct liftoff_plane *plane, struct liftoff_output *output)
 {
-	return (plane->possible_crtcs & (1 << output->crtc_index)) != 0;
+	return (plane->possible_crtcs & (1UL << output->crtc_index)) != 0;
 }
 
 static int

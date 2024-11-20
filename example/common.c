@@ -51,7 +51,7 @@ pick_crtc(int drm_fd, drmModeRes *drm_res, drmModeConnector *connector)
 
 			for (j = 0; !found && j < drm_res->count_crtcs; j++) {
 				/* Can the CRTC drive the connector? */
-				if (enc->possible_crtcs & (1 << j)) {
+				if (enc->possible_crtcs & (1UL << j)) {
 					crtc_id = drm_res->crtcs[j];
 					found = true;
 				}
