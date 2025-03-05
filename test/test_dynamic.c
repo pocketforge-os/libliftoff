@@ -50,7 +50,9 @@ first_commit(struct context *ctx)
 	assert(ctx->commit_count == 0);
 
 	req = drmModeAtomicAlloc();
-	ret = liftoff_output_apply(ctx->output, req, 0, NULL);
+	ret = liftoff_output_apply(ctx->output, req, 0, &(struct liftoff_output_apply_options){
+		.timeout_ns = INT64_MAX,
+	});
 	assert(ret == 0);
 	ret = drmModeAtomicCommit(ctx->drm_fd, req, 0, NULL);
 	assert(ret == 0);
@@ -72,7 +74,9 @@ second_commit(struct context *ctx, bool want_reuse_prev_alloc)
 	int ret;
 
 	req = drmModeAtomicAlloc();
-	ret = liftoff_output_apply(ctx->output, req, 0, NULL);
+	ret = liftoff_output_apply(ctx->output, req, 0, &(struct liftoff_output_apply_options){
+		.timeout_ns = INT64_MAX,
+	});
 	assert(ret == 0);
 	if (want_reuse_prev_alloc) {
 		/* The library should perform only one TEST_ONLY commit with the

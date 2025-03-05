@@ -76,7 +76,9 @@ main(int argc, char *argv[])
 
 			liftoff_layer_set_property(layer, "FB_ID", fbs[j % 2]);
 
-			ret = liftoff_output_apply(output, req, 0, NULL);
+			ret = liftoff_output_apply(output, req, 0, &(struct liftoff_output_apply_options){
+				.timeout_ns = INT64_MAX,
+			});
 			assert(ret == 0);
 			ret = drmModeAtomicCommit(drm_fd, req, 0, NULL);
 			assert(ret == 0);
