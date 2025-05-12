@@ -1056,12 +1056,14 @@ liftoff_output_apply(struct liftoff_output *output, drmModeAtomicReq *req,
 	result.best = malloc(result.planes_len * sizeof(result.best[0]));
 	if (step.alloc == NULL || result.best == NULL) {
 		liftoff_log_errno(LIFTOFF_ERROR, "malloc");
-		return -ENOMEM;
+		ret = -ENOMEM;
+		goto error;
 	}
 
 	if (clock_gettime(CLOCK_MONOTONIC, &result.started_at) != 0) {
 		liftoff_log_errno(LIFTOFF_ERROR, "clock_gettime");
-		return -errno;
+		ret = -errno;
+		goto error;
 	}
 
 	result.timeout_ns = options->timeout_ns;
@@ -1088,7 +1090,7 @@ liftoff_output_apply(struct liftoff_output *output, drmModeAtomicReq *req,
 	step.composited = false;
 	ret = output_choose_layers(output, &result, &step);
 	if (ret != 0) {
-		return ret;
+		goto error;
 	}
 
 	liftoff_log(LIFTOFF_DEBUG,
@@ -1123,7 +1125,7 @@ liftoff_output_apply(struct liftoff_output *output, drmModeAtomicReq *req,
 
 	ret = apply_current(device, req);
 	if (ret != 0) {
-		return ret;
+		goto error;
 	}
 
 	free(step.alloc);
@@ -1132,4 +1134,9 @@ liftoff_output_apply(struct liftoff_output *output, drmModeAtomicReq *req,
 	mark_layers_clean(output);
 
 	return 0;
+
+error:
+	free(step.alloc);
+	free(result.best);
+	return ret;
 }
