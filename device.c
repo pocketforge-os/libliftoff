@@ -90,6 +90,7 @@ liftoff_device_register_all_planes(struct liftoff_device *device)
 
 	for (i = 0; i < drm_plane_res->count_planes; i++) {
 		if (liftoff_plane_create(device, drm_plane_res->planes[i]) == NULL) {
+			drmModeFreePlaneResources(drm_plane_res);
 			return -errno;
 		}
 	}
