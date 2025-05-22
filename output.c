@@ -63,6 +63,12 @@ liftoff_output_needs_composition(struct liftoff_output *output)
 	struct liftoff_layer *layer;
 
 	liftoff_list_for_each(layer, &output->layers, link) {
+		/* If all layers fit on planes then the composition layer
+		 * won't be allocated to a plane and is unneeded. */
+		if (layer == output->composition_layer) {
+			continue;
+		}
+
 		if (liftoff_layer_needs_composition(layer)) {
 			return true;
 		}

@@ -598,7 +598,7 @@ static const struct test_case tests[] = {
 	},
 	{
 		.name = "composition-3x",
-		.needs_composition = true,
+		.needs_composition = false,
 		.layers = {
 			{
 				.width = 1920,
