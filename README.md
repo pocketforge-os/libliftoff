@@ -1,7 +1,5 @@
 # libliftoff
 
-[![builds.sr.ht status](https://builds.sr.ht/~emersion/libliftoff/commits/master.svg)](https://builds.sr.ht/~emersion/libliftoff/commits/master)
-
 Lightweight KMS plane library.
 
 libliftoff eases the use of KMS planes from userspace without standing in your
