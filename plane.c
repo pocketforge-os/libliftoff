@@ -420,6 +420,10 @@ plane_apply(struct liftoff_plane *plane, struct liftoff_layer *layer,
 			if (strcmp(layer_prop->name, "FB_DAMAGE_CLIPS") == 0) {
 				continue; /* Damage can be omitted */
 			}
+			if (strcmp(layer_prop->name, "HOTSPOT_X") == 0 ||
+			    strcmp(layer_prop->name, "HOTSPOT_Y") == 0) {
+				continue; /* Cursor hotspot can be omitted */
+			}
 			drmModeAtomicSetCursor(req, cursor);
 			return -EINVAL;
 		}

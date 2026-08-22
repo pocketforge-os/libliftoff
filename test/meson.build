@@ -82,6 +82,8 @@ tests = {
 		'unset',
 		'in-formats',
 		'fb-damage-clips',
+		'hotspot-x',
+		'hotspot-y',
 		'range',
 		'signed-range',
 		'enum',

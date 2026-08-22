@@ -533,6 +533,10 @@ main(int argc, char *argv[])
 		return test_in_formats();
 	} else if (strcmp(test_name, "fb-damage-clips") == 0) {
 		return test_ignored_prop("FB_DAMAGE_CLIPS");
+	} else if (strcmp(test_name, "hotspot-x") == 0) {
+		return test_ignored_prop("HOTSPOT_X");
+	} else if (strcmp(test_name, "hotspot-y") == 0) {
+		return test_ignored_prop("HOTSPOT_Y");
 	} else if (strcmp(test_name, "range") == 0) {
 		return test_range();
 	} else if (strcmp(test_name, "signed-range") == 0) {
