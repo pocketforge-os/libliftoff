@@ -420,6 +420,12 @@ plane_apply(struct liftoff_plane *plane, struct liftoff_layer *layer,
 			if (strcmp(layer_prop->name, "FB_DAMAGE_CLIPS") == 0) {
 				continue; /* Damage can be omitted */
 			}
+			/* HOTSPOT_X and HOTSPOT_Y can't be ignored: when
+			 * DRM_CLIENT_CAP_CURSOR_PLANE_HOTSPOT is enabled, the
+			 * DRM client must use the cursor plane for actual
+			 * cursors and not for other purposes, because the
+			 * underlying platform may desynchronize cursor plane
+			 * position from KMS state. */
 			drmModeAtomicSetCursor(req, cursor);
 			return -EINVAL;
 		}
